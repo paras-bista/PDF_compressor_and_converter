@@ -1,0 +1,79 @@
+{% load django_bootstrap5 %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Upload Files</title>
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    <style>
+        body {
+            background-color: #eef2f3;
+            font-family: "Poppins", sans-serif;
+        }
+        .card-custom {
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        .btn-custom {
+            background: linear-gradient(to right, #007bff, #6610f2);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+        }
+        .btn-custom:hover {
+            background: linear-gradient(to right, #6610f2, #007bff);
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'compressor/navbar.html' %}
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card card-custom">
+                    <h3 class="text-center text-primary">📂 Upload Files</h3>
+                    <p class="text-center">Compress Word, Excel, and PDF into one final PDF.</p>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Select Files (PDF, Word, Excel)</label>
+                            <input type="file" name="files" multiple class="form-control" accept=".pdf,.docx,.xls,.xlsx">
+                        </div>
+                        <button type="submit" class="btn btn-custom w-100">📩 Convert & Compress</button>
+                    </form>
+
+                    {% if error %}
+                    <div class="alert alert-danger mt-3 text-center">{{ error }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if compressed_files %}
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6">
+                <div class="card card-custom">
+                    <h4 class="text-center text-success">📂 Your Compressed Files</h4>
+                    <ul class="list-group">
+                        {% for file in compressed_files %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ file }}
+                            <a href="{% url 'download_compressed' file %}" class="btn btn-success btn-sm">⬇️ Download</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>
