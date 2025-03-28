@@ -31,10 +31,9 @@ A Django-based project that enables you to:
 ## Installation
 
 1. **Clone the Repository**
-
-   ```sh
    git clone <YOUR-REPO-URL>
    cd PDFCOMPRESSOR
+   
 2.Create a Virtual Environment (Recommended)
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
