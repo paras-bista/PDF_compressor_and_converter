@@ -16,10 +16,11 @@ DEBUG = os.environ.get("RENDER", None) is None
 
 # Render domain and local development
 ALLOWED_HOSTS = [
-    "pdf-compressor-and-converter..onrender.com",  # Replace with your Render domain
+    "pdf-compressor-and-converter.onrender.com",  # ✅ correct
     "localhost",
     "127.0.0.1",
 ]
+
 
 # Application definition
 INSTALLED_APPS = [
