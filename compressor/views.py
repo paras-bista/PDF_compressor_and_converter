@@ -7,22 +7,20 @@ from PyPDF2 import PdfReader, PdfWriter
 
 MEDIA_FOLDER = "media/compressed_pdfs/"
 
-# 🔹 Function to clean filenames (remove special characters)
+# Clean filenames
 def clean_filename(filename):
     return re.sub(r'[^\w.-]', '_', filename)
 
-# 🔹 Ensure session-specific folder exists and return its path
+# Ensure per-session folder exists
 def get_session_folder(session):
     if not session.session_key:
         session.save()
-    session_key = session.session_key
-    session_dir = os.path.join(MEDIA_FOLDER, session_key)
+    session_dir = os.path.join(MEDIA_FOLDER, session.session_key)
     os.makedirs(session_dir, exist_ok=True)
     return session_dir
 
-# 🔹 Compress and merge PDFs
+# Merge & compress PDFs
 def compress_pdfs(pdf_files, output_dir):
-    """Merge and compress multiple PDFs into one and store in output_dir."""
     writer = PdfWriter()
     for pdf in pdf_files:
         reader = PdfReader(pdf)
@@ -43,15 +41,14 @@ def compress_pdfs(pdf_files, output_dir):
 
     return compressed_filename
 
-# 🔹 Upload handler
+# Handle file uploads
 def upload_files(request):
-    """Handle PDF uploads and compress them. History is per-session (device)."""
     session_folder = get_session_folder(request.session)
 
     if request.method == "POST":
         files = request.FILES.getlist("files")
         if not files:
-            return render(request, "compressor/upload.html", {"error": "Please upload at least one file."})
+            return render(request, "compressor/upload.html", {"error": "Please upload at least one PDF file."})
 
         pdf_paths = []
         for uploaded in files:
@@ -61,7 +58,6 @@ def upload_files(request):
 
             safe_filename = clean_filename(uploaded.name)
             temp_path = os.path.join(session_folder, safe_filename)
-
             with open(temp_path, "wb") as f:
                 for chunk in uploaded.chunks():
                     f.write(chunk)
@@ -69,7 +65,7 @@ def upload_files(request):
 
         compressed_filename = compress_pdfs(pdf_paths, output_dir=session_folder)
 
-        # store per-session history
+        # Store per-session history
         history = request.session.get("compressed_files", [])
         history.append(compressed_filename)
         request.session["compressed_files"] = history
@@ -77,16 +73,15 @@ def upload_files(request):
 
         return render(request, "compressor/result.html", {"compressed_filename": compressed_filename})
 
-    # GET: show only this session's compressed files
+    # GET: show session history
     compressed_files = request.session.get("compressed_files", [])
     return render(request, "compressor/upload.html", {"compressed_files": compressed_files})
 
-# 🔹 Download handler
+# Download compressed PDF
 def download_compressed(request, filename):
-    """Serve the compressed PDF file for download only if it belongs to this session."""
     session_history = request.session.get("compressed_files", [])
     if filename not in session_history:
-        return render(request, "compressor/result.html", {"error": "File not available for this session/device."})
+        return render(request, "compressor/result.html", {"error": "File not available for this session."})
 
     session_folder = get_session_folder(request.session)
     file_path = os.path.join(session_folder, filename)
