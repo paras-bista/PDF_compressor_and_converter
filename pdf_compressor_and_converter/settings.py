@@ -1,28 +1,20 @@
-"""
-Django settings for pdfcompressor project.
-"""
-
 from pathlib import Path
 import os
+import dj_database_url
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# SECURITY
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-17-$govm_d9_xetup=20xunbt1fyo(6_6qi$-tqj1kxox_kp31")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("RENDER", None) is None
 
-# Render domain and local development
 ALLOWED_HOSTS = [
-    "pdf-compressor-and-converter.onrender.com",  # ✅ correct
+    "pdf-compressor-and-converter.onrender.com",  # ✅ correct Render domain
     "localhost",
     "127.0.0.1",
 ]
 
-
-# Application definition
+# Applications
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -36,10 +28,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    # WhiteNoise for static files on Render
     'whitenoise.middleware.WhiteNoiseMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -48,12 +37,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'pdfcompressor.urls'
+ROOT_URLCONF = 'pdf_compressor_and_converter.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -66,15 +55,15 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'pdfcompressor.wsgi.application'
+WSGI_APPLICATION = 'pdf_compressor_and_converter.wsgi.application'
 
-# Database (SQLite for now)
-import dj_database_url
-
+# Database (SQLite by default, can use Postgres on Render)
 DATABASES = {
-    "default": dj_database_url.config(default=os.environ.get("DATABASE_URL"))
+    "default": dj_database_url.config(
+        default="sqlite:////" + str(BASE_DIR / "db.sqlite3"),
+        conn_max_age=600
+    )
 }
-
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -93,16 +82,22 @@ USE_TZ = True
 # Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# WhiteNoise config for better caching
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-# Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Security for Render proxy
+# Security
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = not DEBUG
+
+# File upload limits (Render-friendly)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB
+
+# Default primary key
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
